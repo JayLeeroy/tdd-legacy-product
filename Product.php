@@ -1,4 +1,5 @@
 <?php
+namespace Src;
 
 /**
  * Product data object / value object.

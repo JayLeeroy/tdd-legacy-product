@@ -1,0 +1,2 @@
+-resolve static dependency
+-check coverage

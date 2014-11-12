@@ -1,5 +1,6 @@
 <?php
-
+namespace Src;
+define('PRODUCTION_DATABASE_FILE', './product.db');
 /**
  * Class ProductDao
  */
@@ -8,7 +9,12 @@ class ProductDao {
     /**
      * @var \PDO Database resource.
      */
-    private static $pdo;
+    protected $pdo;
+
+	public function __construct(\PDO $pdo)
+	{
+		$this->pdo = $pdo;
+	}
 
     /**
      * Get product by EAN.
@@ -16,9 +22,9 @@ class ProductDao {
      * @param $ean
      * @return NullProduct|Product
      */
-    public static function getByEan($ean)
+    public function getByEan($ean)
     {
-	$sth = self::getPdo()->prepare("SELECT * FROM product WHERE ean = :ean");
+	$sth = $this->pdo->prepare("SELECT * FROM product WHERE ean = :ean");
 	$sth->execute(
 	    array(
 		':ean' => $ean,
@@ -47,9 +53,9 @@ class ProductDao {
      * @param $id
      * @return NullProduct|Product
      */
-    public static function getById($id)
+    public function getById($id)
     {
-	$sth = self::getPdo()->prepare("SELECT * FROM product WHERE id = :id");
+	$sth = $this->pdo->prepare("SELECT * FROM product WHERE id = :id");
 	$sth->execute(
 	    array(
 		':id' => $id,
@@ -78,11 +84,11 @@ class ProductDao {
      * @param Product $product
      * @return bool
      */
-    public static function create(Product $product)
+    public function create(Product $product)
     {
-	if (self::checkUnique($product->ean))
+	if ($this->checkUnique($product->ean))
 	{
-	    $sth = self::getPdo()->prepare("
+	    $sth = $this->pdo->prepare("
 		INSERT INTO product
 		    (ean, name)
 		VALUES
@@ -110,11 +116,11 @@ class ProductDao {
      * @param Product $product
      * @return bool
      */
-    public static function modify(Product $product)
+    public function modify(Product $product)
     {
-	if (self::checkUnique($product->ean))
+	if ($this->checkUnique($product->ean))
 	{
-	    $sth = self::getPdo()->prepare("
+	    $sth = $this->pdo->prepare("
 		UPDATE product
 		SET
 		    ean = :ean,
@@ -139,9 +145,9 @@ class ProductDao {
      * @param Product $product
      * @return bool
      */
-    public static function delete(Product $product)
+    public function delete(Product $product)
     {
-	$sth = self::getPdo()->prepare("DELETE FROM product WHERE id = :id");
+	$sth = $this->pdo->prepare("DELETE FROM product WHERE id = :id");
 
 	$sth->execute(
 	    array(
@@ -155,17 +161,15 @@ class ProductDao {
     /**
      * Internal PDO getter
      *
-     * @return PDO
+     * @return \PDO
      */
-    private static function getPdo()
+    public static function getPdo()
     {
-	if (!(self::$pdo !== null && self::$pdo instanceof \PDO))
-	{
 	    $dsn = sprintf("sqlite:%s", PRODUCTION_DATABASE_FILE);
-	    self::$pdo = new PDO($dsn);
-	    self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-	}
-	return self::$pdo;
+	    $pdo = new \PDO($dsn);
+	    $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+
+		return $pdo;
     }
 
     /**
@@ -174,9 +178,9 @@ class ProductDao {
      * @param $ean
      * @return bool
      */
-    private static function checkUnique($ean)
+    private function checkUnique($ean)
     {
-	$sth = self::getPdo()->prepare("SELECT COUNT(1) FROM product WHERE ean = :ean");
+	$sth = $this->pdo->prepare("SELECT COUNT(1) FROM product WHERE ean = :ean");
 	$sth->execute(
 	    array(
 		':ean' => $ean,
